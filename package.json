@@ -1,6 +1,6 @@
 {
   "name": "zustand-flow",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Zustand middleware and devtools to trace which action changed state",
   "type": "module",
   "main": "./dist/index.cjs",
