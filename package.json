@@ -57,5 +57,13 @@
     "react",
     "state"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dohy-eon/zustand-flow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dohy-eon/zustand-flow/issues"
+  },
+  "homepage": "https://github.com/dohy-eon/zustand-flow#readme"
 }
