@@ -2,6 +2,12 @@
 
 Trace **which action** moved Zustand state: middleware + optional React devtools.
 
+## Demo
+
+
+https://github.com/user-attachments/assets/d7464b32-30ca-4d95-8a9f-ca973ca0759f
+
+
 ## Install
 
 ```bash
