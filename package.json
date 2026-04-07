@@ -1,37 +1,38 @@
 {
   "name": "zustand-flow",
-  "private": true,
   "version": "0.0.1",
+  "description": "Zustand middleware and devtools to trace which action changed state",
   "type": "module",
-  "main": "./dist-lib/index.js",
-  "module": "./dist-lib/index.js",
-  "types": "./dist-lib/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist-lib/index.d.ts",
-      "import": "./dist-lib/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./devtools": {
-      "types": "./dist-lib/devtools.d.ts",
-      "import": "./dist-lib/devtools.js"
+      "types": "./dist/devtools.d.ts",
+      "import": "./dist/devtools.js",
+      "require": "./dist/devtools.cjs"
     }
   },
   "files": [
-    "dist-lib"
+    "dist"
   ],
   "sideEffects": false,
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
-    "build:lib": "tsc -p tsconfig.lib.json",
-    "preview": "vite preview"
+    "dev": "vite --config vite.demo.config.ts",
+    "build": "npm run typecheck && vite build",
+    "build:demo": "vite build --config vite.demo.config.ts",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview --config vite.demo.config.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepack": "npm run build"
   },
   "peerDependencies": {
-    "react": "^18.0.0 || ^19.0.0",
-    "react-dom": "^18.0.0 || ^19.0.0",
-    "zustand": "^5.0.0"
-  },
-  "dependencies": {
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0",
     "zustand": "^5.0.0"
@@ -41,7 +42,20 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "typescript": "~5.7.2",
-    "vite": "^6.0.5"
-  }
+    "vite": "^6.0.5",
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^3.2.0",
+    "zustand": "^5.0.3"
+  },
+  "keywords": [
+    "zustand",
+    "devtools",
+    "middleware",
+    "react",
+    "state"
+  ],
+  "license": "MIT"
 }

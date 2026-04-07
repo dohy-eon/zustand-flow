@@ -1,12 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "noEmit": false,
-    "declaration": true,
-    "declarationMap": true,
-    "outDir": "dist-lib",
-    "rootDir": "src",
-    "allowImportingTsExtensions": false
+    "noEmit": true,
+    "allowImportingTsExtensions": false,
+    "types": ["vite/client", "node"]
   },
   "include": [
     "src/index.ts",
@@ -16,5 +13,5 @@
     "src/react/**/*.tsx",
     "src/vite-env.d.ts"
   ],
-  "exclude": ["src/main.tsx", "src/App.tsx", "src/store.ts"]
+  "exclude": ["src/main.tsx", "src/App.tsx", "src/store.ts", "src/**/*.test.ts"]
 }

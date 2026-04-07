@@ -1,19 +1,13 @@
-/** Dev-only recording: resolved when the app bundle is built (Vite / Node). */
+/**
+ * Uses `process.env.NODE_ENV` so values are resolved by the **app** bundler (Vite, webpack, …).
+ * Avoids `import.meta.env`, which library bundlers can fold incorrectly in dual-format output.
+ */
 export function shouldRecordFlowEvents(): boolean {
-  return (
-    (typeof import.meta !== 'undefined' &&
-      import.meta.env != null &&
-      import.meta.env.DEV === true) ||
-    (typeof process !== 'undefined' &&
-      process.env != null &&
-      process.env.NODE_ENV === 'development')
-  )
+  if (typeof process === 'undefined' || process.env == null) return false
+  return process.env.NODE_ENV !== 'production'
 }
 
 export function isProductionBuild(): boolean {
-  if (typeof import.meta !== 'undefined' && import.meta.env != null) {
-    if (import.meta.env.PROD === true) return true
-  }
-  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') return true
-  return false
+  if (typeof process === 'undefined' || process.env == null) return false
+  return process.env.NODE_ENV === 'production'
 }

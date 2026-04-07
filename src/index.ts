@@ -15,6 +15,8 @@ export {
 export { shallowStateDiff, isOpaqueStateChange } from './lib/diff'
 export {
   buildCopyTestSnippet,
+  buildVitestTestSnippet,
+  escapeTestTitle,
   type BuildCopyTestSnippetOptions,
   type TestSnippetRunner,
 } from './lib/copy-test-snippet'

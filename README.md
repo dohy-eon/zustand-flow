@@ -1,40 +1,62 @@
 # zustand-flow
 
-Visualize how your Zustand state flows — and which action caused each change.
+Trace **which action** moved Zustand state: middleware + optional React devtools.
+
+## Install
+
+```bash
+npm install zustand-flow
+```
+
+Peers: `react`, `react-dom`, `zustand` (v5).
+
+## Usage
+
+**Core** (middleware + headless hook):
+
+```ts
+import { flowMiddleware, useFlowEvents } from 'zustand-flow'
+```
+
+**Devtools UI** (separate entry — keeps UI out of the main graph if you only want middleware):
+
+```ts
+import { ZustandFlowDevtools } from 'zustand-flow/devtools'
+```
+
+## Build (maintainers)
+
+| Script        | Output        | Purpose                          |
+|---------------|---------------|----------------------------------|
+| `npm run build` | `dist/`       | **Library** ESM (`.js`) + CJS (`.cjs`) + `.d.ts` |
+| `npm run build:demo` | `dist-demo/` | Demo SPA for preview            |
+| `npm run dev` | —             | Demo dev server                  |
+| `npm test`    | —             | Vitest                           |
+
+`package.json` **exports**:
+
+- `.` → `dist/index.js` / `dist/index.cjs` + types  
+- `./devtools` → `dist/devtools.js` / `dist/devtools.cjs` + types  
+
+Rollup may emit small shared chunks under `dist/`; publish the whole `dist` folder (`files` field).
 
 ## Immutability
 
-Flow stores **state references** from `get()` before/after each `set`. If you **mutate** nested objects instead of replacing them, timelines and diffs will be misleading. Prefer immutable updates (Zustand’s default pattern).
+Events store **references** from `get()` before/after `set`. In-place mutation breaks timelines — keep updates immutable.
 
-## Package layout (library build)
+## `NODE_ENV`
 
-```bash
-npm run build:lib
-```
+Middleware and devtools use `process.env.NODE_ENV` (injected by Vite, webpack, etc.). If `process` is missing, recording stays off and devtools are not treated as a production build (the panel may still render).
 
-Emits **TypeScript ESM + `.d.ts`** into `dist-lib/` (no pre-bundle) so `import.meta.env` / `NODE_ENV` are resolved by **your** app bundler.
+## Vitest “Copy as Test”
 
-- **`zustand-flow`** → `dist-lib/index.js` — middleware, `useFlowEvents`, event store, snippets, diff helpers.
-- **`zustand-flow/devtools`** → `dist-lib/devtools.js` — `<ZustandFlowDevtools />` only.
+`buildVitestTestSnippet(event, { storeId: 'useStore' })` or `buildCopyTestSnippet` (default runner: Vitest). See `src/lib/copy-test-snippet.ts`.
 
-Import the root entry if you want to avoid pulling the devtools module into your graph.
+## Source layout
 
-## Copy as Test
-
-`buildCopyTestSnippet(event, { storeId: 'useStore', runner: 'vitest' | 'jest' })` — Vitest emits explicit `describe`/`it`/`expect` imports; Jest assumes globals (see comment in snippet).
-
-## Source layout (this repo)
-
-| Path | Role |
-|------|------|
-| `src/lib/` | Framework-agnostic: types, constants, env, event store, middleware, diff, snippets |
-| `src/react/` | `use-flow-events` + `devtools/` UI pieces |
-| `src/index.ts` | Published **main** entry |
-| `src/devtools.tsx` | Published **devtools** subpath |
-
-## Demo app
-
-```bash
-npm install
-npm run dev
-```
+| Path        | Role                                      |
+|------------|-------------------------------------------|
+| `src/lib/` | Middleware, event store, env, diff, snippet |
+| `src/react/` | `use-flow-events`, devtools UI          |
+| `src/index.ts` | Package main entry                    |
+| `src/devtools.tsx` | Package `zustand-flow/devtools`   |
