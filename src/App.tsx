@@ -1,4 +1,4 @@
-import { ZustandFlowDevtools } from './flow/ZustandFlowDevtools'
+import { ZustandFlowDevtools } from './react/devtools/ZustandFlowDevtools'
 import { useStore } from './store'
 
 export function App() {

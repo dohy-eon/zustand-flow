@@ -1,2 +1,2 @@
-export { ZustandFlowDevtools } from './flow/ZustandFlowDevtools'
-export type { ZustandFlowDevtoolsProps } from './flow/ZustandFlowDevtools'
+export { ZustandFlowDevtools } from './react/devtools/ZustandFlowDevtools'
+export type { ZustandFlowDevtoolsProps } from './react/devtools/ZustandFlowDevtools'

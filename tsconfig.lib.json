@@ -11,8 +11,9 @@
   "include": [
     "src/index.ts",
     "src/devtools.tsx",
-    "src/flow/**/*.ts",
-    "src/flow/**/*.tsx",
+    "src/lib/**/*.ts",
+    "src/react/**/*.ts",
+    "src/react/**/*.tsx",
     "src/vite-env.d.ts"
   ],
   "exclude": ["src/main.tsx", "src/App.tsx", "src/store.ts"]

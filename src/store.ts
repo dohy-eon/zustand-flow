@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { flowMiddleware } from './flow/flowMiddleware'
+import { flowMiddleware } from './lib/middleware'
 
 type Store = {
   count: number

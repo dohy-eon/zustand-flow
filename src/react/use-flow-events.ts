@@ -1,12 +1,9 @@
 import { useSyncExternalStore } from 'react'
-import {
-  DEFAULT_FLOW_NAMESPACE,
-  getFlowEvents,
-  subscribeFlowEvents,
-  type FlowEvent,
-} from './flowEventStore'
+import { DEFAULT_FLOW_NAMESPACE } from '../lib/constants'
+import { getFlowEvents, subscribeFlowEvents } from '../lib/event-store'
+import type { FlowEvent } from '../lib/types'
 
-/** Subscribe to flow events for a namespace (headless; use for custom UI or logging). */
+/** Headless subscription to flow events for one namespace (custom UI or logging). */
 export function useFlowEvents(namespace: string = DEFAULT_FLOW_NAMESPACE): FlowEvent[] {
   return useSyncExternalStore(
     subscribeFlowEvents,

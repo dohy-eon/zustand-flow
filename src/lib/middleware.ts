@@ -1,21 +1,16 @@
 import type { StateCreator, StoreApi } from 'zustand'
-import { DEFAULT_FLOW_NAMESPACE, pushFlowEvent } from './flowEventStore'
+import { DEFAULT_FLOW_NAMESPACE } from './constants'
+import { shouldRecordFlowEvents } from './env'
+import { pushFlowEvent } from './event-store'
 
-/** True in dev: Vite `import.meta.env.DEV` or `NODE_ENV === 'development'` (left for app bundlers to fold). */
-const shouldRecord =
-  (typeof import.meta !== 'undefined' &&
-    import.meta.env != null &&
-    import.meta.env.DEV === true) ||
-  (typeof process !== 'undefined' &&
-    process.env != null &&
-    process.env.NODE_ENV === 'development')
+const shouldRecord = shouldRecordFlowEvents()
 
 export type FlowMiddlewareOptions = {
   /** Isolates timeline when multiple stores use flow middleware. */
   namespace?: string
 }
 
-/** `set` with optional 3rd argument for action name (passed to flow events only). */
+/** `set` with optional 3rd argument for action name (flow events only). */
 export type FlowSetState<T extends object> = {
   (
     partial: T | Partial<T> | ((state: T) => T | Partial<T>),
@@ -84,7 +79,7 @@ function createFlowInner<T extends object>(
 
 /**
  * Wraps `set` to record flow events (dev only). Stores **references** from `get()` before/after
- * `set` — keep Zustand state updates immutable; in-place mutation makes timelines/diffs wrong.
+ * `set` — keep Zustand state updates immutable; in-place mutation breaks timelines/diffs.
  */
 export function flowMiddleware<T extends object>(
   config: FlowStateCreator<T>

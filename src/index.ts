@@ -1,21 +1,21 @@
-export {
-  buildCopyTestSnippet,
-  type BuildCopyTestSnippetOptions,
-  type TestSnippetRunner,
-} from './flow/copyTestSnippet'
-export { shallowStateDiff, isOpaqueStateChange } from './flow/flowDiff'
+/* Root export: core + `useFlowEvents`. Devtools UI: `zustand-flow/devtools`. */
+export type { FlowEvent } from './lib/types'
+export { DEFAULT_FLOW_NAMESPACE, FLOW_EVENT_HISTORY_LIMIT } from './lib/constants'
 export {
   clearFlowEvents,
-  DEFAULT_FLOW_NAMESPACE,
-  FLOW_EVENT_HISTORY_LIMIT,
   getFlowEvents,
   subscribeFlowEvents,
-  type FlowEvent,
-} from './flow/flowEventStore'
+} from './lib/event-store'
 export {
   flowMiddleware,
   type FlowMiddlewareOptions,
   type FlowSetState,
   type FlowStateCreator,
-} from './flow/flowMiddleware'
-export { useFlowEvents } from './flow/useFlowEvents'
+} from './lib/middleware'
+export { shallowStateDiff, isOpaqueStateChange } from './lib/diff'
+export {
+  buildCopyTestSnippet,
+  type BuildCopyTestSnippetOptions,
+  type TestSnippetRunner,
+} from './lib/copy-test-snippet'
+export { useFlowEvents } from './react/use-flow-events'

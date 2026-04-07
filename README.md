@@ -23,6 +23,15 @@ Import the root entry if you want to avoid pulling the devtools module into your
 
 `buildCopyTestSnippet(event, { storeId: 'useStore', runner: 'vitest' | 'jest' })` — Vitest emits explicit `describe`/`it`/`expect` imports; Jest assumes globals (see comment in snippet).
 
+## Source layout (this repo)
+
+| Path | Role |
+|------|------|
+| `src/lib/` | Framework-agnostic: types, constants, env, event store, middleware, diff, snippets |
+| `src/react/` | `use-flow-events` + `devtools/` UI pieces |
+| `src/index.ts` | Published **main** entry |
+| `src/devtools.tsx` | Published **devtools** subpath |
+
 ## Demo app
 
 ```bash

@@ -1,4 +1,4 @@
-import type { FlowEvent } from './flowEventStore'
+import type { FlowEvent } from './types'
 
 function stateLiteral(state: unknown): string {
   try {
@@ -11,9 +11,7 @@ function stateLiteral(state: unknown): string {
 export type TestSnippetRunner = 'vitest' | 'jest'
 
 export type BuildCopyTestSnippetOptions = {
-  /** Store import name (e.g. `useStore`). */
   storeId?: string
-  /** Vitest uses explicit imports; Jest omits them (globals / your setup). */
   runner?: TestSnippetRunner
 }
 
@@ -24,9 +22,7 @@ function snippetHeader(runner: TestSnippetRunner): string {
   return `import { describe, it, expect } from 'vitest'\nimport { act } from '@testing-library/react'\n`
 }
 
-/**
- * Generates a paste-ready test skeleton. Fill in the TODO to call your action.
- */
+/** Paste-ready test skeleton; fill the TODO to invoke your action. */
 export function buildCopyTestSnippet(
   event: FlowEvent,
   options: BuildCopyTestSnippetOptions = {}
