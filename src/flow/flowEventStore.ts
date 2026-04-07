@@ -6,7 +6,10 @@ export type FlowEvent = {
   timestamp: number
 }
 
-const MAX_EVENTS = 300
+/** Max events kept in memory (oldest dropped). */
+export const FLOW_EVENT_HISTORY_LIMIT = 50
+
+const MAX_EVENTS = FLOW_EVENT_HISTORY_LIMIT
 
 let seq = 0
 
