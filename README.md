@@ -16,6 +16,8 @@ npm install zustand-flow
 
 Peers: `react`, `react-dom`, `zustand` (v5).
 
+**Demo (Vercel):** [https://zustand-flow.vercel.app](https://zustand-flow.vercel.app)
+
 ## Usage
 
 **Core** (middleware + headless hook):
@@ -52,7 +54,9 @@ Events store **references** from `get()` before/after `set`. In-place mutation b
 
 ## `NODE_ENV`
 
-Middleware and devtools use `process.env.NODE_ENV` (injected by Vite, webpack, etc.). If `process` is missing, recording stays off and devtools are not treated as a production build (the panel may still render).
+Middleware and devtools read `process.env.NODE_ENV` (and `globalThis.process` as a fallback). App bundlers usually inject this.
+
+**This repo’s demo** prepends a tiny `globalThis.process` shim via `vite.demo.config.ts` so `npm run dev` works in the browser without a full `process` polyfill.
 
 ## Vitest “Copy as Test”
 
