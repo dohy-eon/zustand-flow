@@ -1,4 +1,5 @@
 import { useCallback, useState, useSyncExternalStore } from 'react'
+import { shallowStateDiff } from './flowDiff'
 import {
   clearFlowEvents,
   getFlowEvents,
@@ -46,6 +47,94 @@ function JsonBlock({ label, value }: { label: string; value: unknown }) {
   )
 }
 
+function DiffSummary({ prev, next }: { prev: unknown; next: unknown }) {
+  const diff = shallowStateDiff(prev, next)
+  if (diff === null) {
+    return (
+      <div
+        style={{
+          marginTop: 8,
+          padding: 8,
+          background: '#1f2937',
+          borderRadius: 4,
+          fontSize: 10,
+          color: '#9ca3af',
+          border: '1px solid #374151',
+        }}
+      >
+        Shallow diff applies to plain objects only. See full JSON below.
+      </div>
+    )
+  }
+  const keys = Object.keys(diff)
+  if (keys.length === 0) {
+    return (
+      <div
+        style={{
+          marginTop: 8,
+          padding: 8,
+          fontSize: 10,
+          color: '#6ee7b7',
+          background: '#052e1f',
+          borderRadius: 4,
+          border: '1px solid #14532d',
+        }}
+      >
+        No shallow key changes (same reference or value).
+      </div>
+    )
+  }
+  return (
+    <div style={{ marginTop: 8 }}>
+      <div style={{ fontSize: 10, color: '#fcd34d', marginBottom: 6, fontWeight: 600 }}>
+        Changed keys ({keys.length})
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
+        {keys.map((k) => (
+          <div
+            key={k}
+            style={{
+              padding: 8,
+              background: '#0c1829',
+              borderRadius: 4,
+              border: '1px solid #1e3a5f',
+              fontSize: 10,
+            }}
+          >
+            <div style={{ color: '#93c5fd', fontWeight: 600, marginBottom: 4 }}>{k}</div>
+            <div style={{ color: '#fca5a5' }}>
+              from:{' '}
+              <code style={{ wordBreak: 'break-all' }}>
+                {tryStringify(diff[k].from)}
+              </code>
+            </div>
+            <div style={{ color: '#86efac', marginTop: 4 }}>
+              to:{' '}
+              <code style={{ wordBreak: 'break-all' }}>
+                {tryStringify(diff[k].to)}
+              </code>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function tryStringify(v: unknown): string {
+  try {
+    return JSON.stringify(v)
+  } catch {
+    return String(v)
+  }
+}
+
 function EventRow({ event }: { event: FlowEvent }) {
   const [open, setOpen] = useState(false)
   const toggle = useCallback(() => setOpen((o) => !o), [])
@@ -79,6 +168,7 @@ function EventRow({ event }: { event: FlowEvent }) {
       </button>
       {open && (
         <>
+          <DiffSummary prev={event.prevState} next={event.nextState} />
           <JsonBlock label="prevState" value={event.prevState} />
           <JsonBlock label="nextState" value={event.nextState} />
         </>
@@ -150,9 +240,7 @@ export function ZustandFlowDevtools() {
             No events yet.
           </div>
         ) : (
-          events.map((e, i) => (
-            <EventRow key={`${e.timestamp}-${i}`} event={e} />
-          ))
+          events.map((e) => <EventRow key={e.id} event={e} />)
         )}
       </div>
     </div>

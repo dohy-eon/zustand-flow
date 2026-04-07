@@ -1,6 +1,11 @@
 import type { StateCreator, StoreApi } from 'zustand'
 import { pushFlowEvent } from './flowEventStore'
 
+const shouldRecord =
+  typeof import.meta !== 'undefined' &&
+  import.meta.env != null &&
+  import.meta.env.DEV === true
+
 function snapshot(value: unknown): unknown {
   try {
     return structuredClone(value)
@@ -38,8 +43,21 @@ export function flowMiddleware<T extends object>(
       replace?: boolean,
       action?: string
     ) => {
-      const prevState = snapshot(get())
       const actionName = typeof action === 'string' ? action : 'anonymous'
+
+      if (!shouldRecord) {
+        if (replace === true) {
+          set(partial as T | ((state: T) => T), true)
+        } else {
+          set(
+            partial as T | Partial<T> | ((state: T) => T | Partial<T>),
+            replace as false | undefined
+          )
+        }
+        return
+      }
+
+      const prevState = snapshot(get())
 
       if (replace === true) {
         set(partial as T | ((state: T) => T), true)
