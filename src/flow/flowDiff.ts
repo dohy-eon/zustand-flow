@@ -20,3 +20,8 @@ export function shallowStateDiff(
   }
   return out
 }
+
+/** True when state identity or value differs but we cannot run shallow key diff (Map, class, etc.). */
+export function isOpaqueStateChange(prev: unknown, next: unknown): boolean {
+  return !Object.is(prev, next) && (shallowStateDiff(prev, next) === null)
+}

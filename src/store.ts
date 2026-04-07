@@ -7,7 +7,7 @@ type Store = {
 }
 
 export const useStore = create<Store>()(
-  flowMiddleware((set) => ({
+  flowMiddleware({ namespace: 'demo' }, (set) => ({
     count: 0,
     inc: () => set((s) => ({ count: s.count + 1 }), false, 'inc'),
   }))

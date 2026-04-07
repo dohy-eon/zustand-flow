@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "declarationMap": true,
+    "outDir": "dist-lib",
+    "rootDir": "src",
+    "allowImportingTsExtensions": false
+  },
+  "include": [
+    "src/index.ts",
+    "src/devtools.tsx",
+    "src/flow/**/*.ts",
+    "src/flow/**/*.tsx",
+    "src/vite-env.d.ts"
+  ],
+  "exclude": ["src/main.tsx", "src/App.tsx", "src/store.ts"]
+}

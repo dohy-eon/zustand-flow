@@ -36,7 +36,7 @@ export function App() {
       >
         Increment
       </button>
-      <ZustandFlowDevtools />
+      <ZustandFlowDevtools namespace="demo" storeIdentifier="useStore" />
     </div>
   )
 }

@@ -1,12 +1,39 @@
-import { useCallback, useState, useSyncExternalStore, type CSSProperties } from 'react'
-import { shallowStateDiff } from './flowDiff'
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useState,
+  type CSSProperties,
+} from 'react'
+import {
+  buildCopyTestSnippet,
+  type TestSnippetRunner,
+} from './copyTestSnippet'
 import {
   clearFlowEvents,
+  DEFAULT_FLOW_NAMESPACE,
   FLOW_EVENT_HISTORY_LIMIT,
-  getFlowEvents,
-  subscribeFlowEvents,
   type FlowEvent,
 } from './flowEventStore'
+import { isOpaqueStateChange, shallowStateDiff } from './flowDiff'
+import { useFlowEvents } from './useFlowEvents'
+
+function isProdBuild(): boolean {
+  if (typeof import.meta !== 'undefined' && import.meta.env != null) {
+    if (import.meta.env.PROD === true) return true
+  }
+  if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') return true
+  return false
+}
+
+export type ZustandFlowDevtoolsProps = {
+  /** Timeline bucket (must match `flowMiddleware({ namespace })`). */
+  namespace?: string
+  /** Import name used in “Copy as Test” output. */
+  storeIdentifier?: string
+  /** Target for generated test snippet imports. */
+  testRunner?: TestSnippetRunner
+}
 
 const panel: CSSProperties = {
   position: 'fixed',
@@ -91,6 +118,43 @@ function JsonBlock({ label, value }: { label: string; value: unknown }) {
 function DiffSummary({ prev, next }: { prev: unknown; next: unknown }) {
   const diff = shallowStateDiff(prev, next)
   if (diff === null) {
+    if (Object.is(prev, next)) {
+      return (
+        <div
+          style={{
+            marginTop: 4,
+            padding: '10px 12px',
+            background: '#1f2937',
+            borderRadius: 6,
+            fontSize: 10,
+            lineHeight: 1.45,
+            color: '#9ca3af',
+            border: '1px solid #374151',
+          }}
+        >
+          Same state reference — no transition to compare.
+        </div>
+      )
+    }
+    if (isOpaqueStateChange(prev, next)) {
+      return (
+        <div
+          style={{
+            marginTop: 4,
+            padding: '10px 12px',
+            background: '#292524',
+            borderRadius: 6,
+            fontSize: 10,
+            lineHeight: 1.45,
+            color: '#fcd34d',
+            border: '1px solid #78350f',
+          }}
+        >
+          State changed, but shallow key diff is only for plain objects (not Map, Set, arrays as
+          root, or class instances). Inspect JSON below.
+        </div>
+      )
+    }
     return (
       <div
         style={{
@@ -104,7 +168,7 @@ function DiffSummary({ prev, next }: { prev: unknown; next: unknown }) {
           border: '1px solid #374151',
         }}
       >
-        Shallow diff applies to plain objects only. See full JSON below.
+        Could not compute shallow keys. See JSON below.
       </div>
     )
   }
@@ -180,14 +244,37 @@ function tryStringify(v: unknown): string {
 
 function changedKeysLabel(prev: unknown, next: unknown): string | null {
   const diff = shallowStateDiff(prev, next)
-  if (!diff || Object.keys(diff).length === 0) return null
-  return Object.keys(diff).join(', ')
+  if (diff && Object.keys(diff).length > 0) return Object.keys(diff).join(', ')
+  if (isOpaqueStateChange(prev, next)) return 'non-plain state change'
+  return null
 }
 
-function EventRow({ event }: { event: FlowEvent }) {
+type EventRowProps = {
+  event: FlowEvent
+  storeIdentifier: string
+  testRunner: TestSnippetRunner
+}
+
+const EventRow = memo(function EventRow({
+  event,
+  storeIdentifier,
+  testRunner,
+}: EventRowProps) {
   const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
   const toggle = useCallback(() => setOpen((o) => !o), [])
   const keysHint = changedKeysLabel(event.prevState, event.nextState)
+
+  const copyTest = useCallback(() => {
+    const text = buildCopyTestSnippet(event, {
+      storeId: storeIdentifier,
+      runner: testRunner,
+    })
+    void navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    })
+  }, [event, storeIdentifier, testRunner])
 
   return (
     <div
@@ -258,6 +345,18 @@ function EventRow({ event }: { event: FlowEvent }) {
       </button>
       {open && (
         <div style={{ paddingTop: 10 }}>
+          <div style={{ marginBottom: 8 }}>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                copyTest()
+              }}
+              style={{ ...btnBase, fontSize: 10 }}
+            >
+              {copied ? 'Copied' : 'Copy as Test'}
+            </button>
+          </div>
           <DiffSummary prev={event.prevState} next={event.nextState} />
           <JsonBlock label="prevState" value={event.prevState} />
           <JsonBlock label="nextState" value={event.nextState} />
@@ -265,15 +364,30 @@ function EventRow({ event }: { event: FlowEvent }) {
       )}
     </div>
   )
-}
+})
 
-export function ZustandFlowDevtools() {
+function ZustandFlowDevtoolsInner({
+  namespace = DEFAULT_FLOW_NAMESPACE,
+  storeIdentifier = 'useStore',
+  testRunner = 'vitest',
+}: ZustandFlowDevtoolsProps) {
   const [open, setOpen] = useState(true)
-  const events = useSyncExternalStore(
-    subscribeFlowEvents,
-    getFlowEvents,
-    getFlowEvents
-  )
+  const events = useFlowEvents(namespace)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey && e.ctrlKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault()
+        setOpen((v) => !v)
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [])
+
+  const onClear = useCallback(() => {
+    clearFlowEvents(namespace)
+  }, [namespace])
 
   if (!open) {
     return (
@@ -295,6 +409,7 @@ export function ZustandFlowDevtools() {
           background: '#0f172a',
           boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
         }}
+        title="Show Flow (⌘⌃Z)"
       >
         <span>Flow</span>
         {events.length > 0 && (
@@ -334,15 +449,15 @@ export function ZustandFlowDevtools() {
             Zustand Flow
           </span>
           <span style={{ fontSize: 10, color: '#6b7280' }}>
-            Last {events.length} / {FLOW_EVENT_HISTORY_LIMIT}
+            {namespace} · {events.length} / {FLOW_EVENT_HISTORY_LIMIT}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
           <button
             type="button"
-            onClick={clearFlowEvents}
+            onClick={onClear}
             style={btnBase}
-            title="Clear event history"
+            title="Clear events for this namespace"
           >
             Clear
           </button>
@@ -350,7 +465,7 @@ export function ZustandFlowDevtools() {
             type="button"
             onClick={() => setOpen(false)}
             style={{ ...btnBase, padding: '6px 9px' }}
-            title="Hide panel"
+            title="Hide panel (⌘⌃Z)"
             aria-label="Hide devtools panel"
           >
             −
@@ -378,9 +493,22 @@ export function ZustandFlowDevtools() {
             call to see them here.
           </div>
         ) : (
-          events.map((e) => <EventRow key={e.id} event={e} />)
+          events.map((e) => (
+            <EventRow
+              key={e.id}
+              event={e}
+              storeIdentifier={storeIdentifier}
+              testRunner={testRunner}
+            />
+          ))
         )}
       </div>
     </div>
   )
+}
+
+/** Fixed devtools panel; renders `null` in production to avoid UI cost. For smaller bundles, use dynamic import in dev only. */
+export function ZustandFlowDevtools(props: ZustandFlowDevtoolsProps) {
+  if (isProdBuild()) return null
+  return <ZustandFlowDevtoolsInner {...props} />
 }
