@@ -1,4 +1,5 @@
 # zustand-flow
+![zustand-flow](https://github.com/user-attachments/assets/fa100c57-618b-4aa9-abc3-ae1acbe0d891)
 
 > **Stop guessing, start tracing.**
 
