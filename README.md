@@ -1,72 +1,122 @@
 # zustand-flow
 
-Trace **which action** moved Zustand state: middleware + optional React devtools.
+> **Stop guessing, start tracing.**
 
-## Demo
+Trace **exactly which action** moved your Zustand state — middleware, a focused Devtools UI, and **one-click Vitest/Jest snippets**.
 
+**→ [Open the live demo](https://zustand-flow.vercel.app)**
 
-https://github.com/user-attachments/assets/d7464b32-30ca-4d95-8a9f-ca973ca0759f
+[![npm version](https://img.shields.io/npm/v/zustand-flow.svg)](https://www.npmjs.com/package/zustand-flow)
+[![license](https://img.shields.io/npm/l/zustand-flow.svg)](https://github.com/dohy-eon/zustand-flow/blob/main/LICENSE)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/zustand-flow)](https://bundlephobia.com/package/zustand-flow)
 
+## What you get
 
-## Install
+- 🔍 See **why** state changed — not just **what**
+- 🕒 **Timeline** of actions (labeled `set` calls)
+- 🔁 **Before / after** state (diff-friendly workflow in Devtools)
+- 🧪 **Copy real transitions as tests** (Vitest / Jest)
+
+## Before vs After
+
+❌ `console.log` debugging · guessing what flipped state  
+✅ **Timeline** · **action tracing** · **instant test snippets**
+
+❌ “Something mutated this slice…”  
+✅ **Named actions** end-to-end
+
+## Why?
+
+Zustand stays simple; **debugging** multi-action flows does not.
+
+Redux DevTools-style tooling often shows *what* moved — **zustand-flow** is built around the **flow**: named actions, readable timeline, and turning that moment into a test.
+
+## Quick start
 
 ```bash
 npm install zustand-flow
 ```
 
-Peers: `react`, `react-dom`, `zustand` (v5).
+Peers: `react`, `react-dom`, `zustand` (^5).
 
-**Demo (Vercel):** [https://zustand-flow.vercel.app](https://zustand-flow.vercel.app)
+**1. Middleware** — third argument to `set` is the action label:
 
-## Usage
+```ts
+import { create } from 'zustand'
+import { flowMiddleware } from 'zustand-flow'
 
-**Core** (middleware + headless hook):
+type Store = { count: number; increment: () => void }
+
+export const useStore = create<Store>()(
+  flowMiddleware((set) => ({
+    count: 0,
+    increment: () =>
+      set((s) => ({ count: s.count + 1 }), false, 'increment'),
+  }))
+)
+```
+
+Multiple stores: `flowMiddleware({ namespace: 'cart' }, (set) => ({ … }))`.
+
+**2. Devtools (dev only)**
+
+```tsx
+import { ZustandFlowDevtools } from 'zustand-flow/devtools'
+
+function App() {
+  return (
+    <>
+      <YourApp />
+      <ZustandFlowDevtools />
+    </>
+  )
+}
+```
+
+**3. Copy as test** — from the panel, or in code: `buildCopyTestSnippet(event, { storeId: 'useStore' })` · [`copy-test-snippet.ts`](src/lib/copy-test-snippet.ts)
+
+## Demo
+
+- **[zustand-flow.vercel.app](https://zustand-flow.vercel.app)** — try the timeline and “copy as test” in the browser.
+- **[Screen recording](https://github.com/user-attachments/assets/d7464b32-30ca-4d95-8a9f-ca973ca0759f)** (GitHub-hosted clip).
+
+## Headless
 
 ```ts
 import { flowMiddleware, useFlowEvents } from 'zustand-flow'
 ```
 
-**Devtools UI** (separate entry — keeps UI out of the main graph if you only want middleware):
+## Package layout
 
-```ts
-import { ZustandFlowDevtools } from 'zustand-flow/devtools'
-```
+| Import | Purpose |
+|--------|---------|
+| `zustand-flow` | Middleware, events, diff helpers, snippet builders, `useFlowEvents` |
+| `zustand-flow/devtools` | `ZustandFlowDevtools` |
 
-## Build (maintainers)
-
-| Script        | Output        | Purpose                          |
-|---------------|---------------|----------------------------------|
-| `npm run build` | `dist/`       | **Library** ESM (`.js`) + CJS (`.cjs`) + `.d.ts` |
-| `npm run build:demo` | `dist-demo/` | Demo SPA for preview            |
-| `npm run dev` | —             | Demo dev server                  |
-| `npm test`    | —             | Vitest                           |
-
-`package.json` **exports**:
-
-- `.` → `dist/index.js` / `dist/index.cjs` + types  
-- `./devtools` → `dist/devtools.js` / `dist/devtools.cjs` + types  
-
-Rollup may emit small shared chunks under `dist/`; publish the whole `dist` folder (`files` field).
+Exports: ESM + CJS + types for `.` and `./devtools`. Publish the full `dist/` tree (`files` in `package.json`).
 
 ## Immutability
 
-Events store **references** from `get()` before/after `set`. In-place mutation breaks timelines — keep updates immutable.
+Events keep **references** from `get()` before/after `set`. In-place mutation breaks timelines — keep updates immutable.
 
 ## `NODE_ENV`
 
-Middleware and devtools read `process.env.NODE_ENV` (and `globalThis.process` as a fallback). App bundlers usually inject this.
+Recording follows `process.env.NODE_ENV` (with a `globalThis.process` fallback). The demo uses a small shim in `vite.demo.config.ts` so `npm run dev` works without a full `process` polyfill.
 
-**This repo’s demo** prepends a tiny `globalThis.process` shim via `vite.demo.config.ts` so `npm run dev` works in the browser without a full `process` polyfill.
+## Build (maintainers)
 
-## Vitest “Copy as Test”
-
-`buildVitestTestSnippet(event, { storeId: 'useStore' })` or `buildCopyTestSnippet` (default runner: Vitest). See `src/lib/copy-test-snippet.ts`.
+| Script | Output | Purpose |
+|--------|--------|---------|
+| `npm run build` | `dist/` | Library ESM (`.js`) + CJS (`.cjs`) + `.d.ts` |
+| `npm run build:demo` | `dist-demo/` | Demo SPA |
+| `npm run dev` | — | Demo dev server |
+| `npm test` | — | Vitest |
 
 ## Source layout
 
-| Path        | Role                                      |
-|------------|-------------------------------------------|
-| `src/lib/` | Middleware, event store, env, diff, snippet |
-| `src/react/` | `use-flow-events`, devtools UI          |
-| `src/index.ts` | Package main entry                    |
-| `src/devtools.tsx` | Package `zustand-flow/devtools`   |
+| Path | Role |
+|------|------|
+| `src/lib/` | Middleware, event store, env, diff, snippets |
+| `src/react/` | `use-flow-events`, Devtools UI |
+| `src/index.ts` | Main entry |
+| `src/devtools.tsx` | `zustand-flow/devtools` entry |
